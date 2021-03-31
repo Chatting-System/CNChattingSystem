@@ -81,8 +81,10 @@
 
         socket.on('new user', function(msg) {
               //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
-            var length = msg.connected_users.length;
-            for (var i=0; i<length; i++) {
+          document.getElementById("users").innerHTML = "";
+          var length = msg.connected_users.length;
+          document.getElementById('users').innerHTML += '<ul>'
+          for (var i=0; i<length; i++) {
               var li = document.createElement("li")
               var button = document.createElement("BUTTON")
               button.scname=msg.connected_users[i]
@@ -91,6 +93,7 @@
               li.innerHTML += button
               document.getElementById("users").appendChild(li);
             }
+          document.getElementById('users') += '</ul>';
         });
 
         //function set_partner(user) {
@@ -120,8 +123,11 @@
 </form>
 <div id="myDiv" style="height:200px; overflow:scroll"></div>
 <h3>Users currently online:</h3>
-<ul id="users">
+<div id='users'>
+<ul>
 <li> <button onclick=set_partner("all")>Everyone<button>
+</div>
 </ul>
+</div>
 </body>
 </html>
