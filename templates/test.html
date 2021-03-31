@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>CN Chat App</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+<script>
+    Date.prototype.format = function(fmt) {
+     var o = {
+        "M+" : this.getMonth()+1,                 //月份
+        "d+" : this.getDate(),                    //日
+        "h+" : this.getHours(),                   //小时
+        "m+" : this.getMinutes(),                 //分
+        "s+" : this.getSeconds(),                 //秒
+        "q+" : Math.floor((this.getMonth()+3)/3), //季度
+        "S"  : this.getMilliseconds()             //毫秒
+    };
+    if(/(y+)/.test(fmt)) {
+            fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+    }
+     for(var k in o) {
+        if(new RegExp("("+ k +")").test(fmt)){
+             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+         }
+     }
+    return fmt;
+}
+</script>
+<script type="text/javascript" charset="utf-8">
+    // function loadXMLDoc()
+    // {
+    //     var req = new XMLHttpRequest()
+    //     req.onreadystatechange = function()
+    //     {
+    //         if (req.readyState == 4)
+    //         {
+    //             if (req.status != 200)
+    //             {
+    //                 //error handling code here
+    //             }
+    //             else
+    //             {
+    //                 var response = JSON.parse(req.responseText)
+    //                 document.getElementById('myDiv').innerHTML += "<p>"+response.time+"</p>"+response.username+"<br>"
+    //                 document.getElementById('scname').value = ''
+    //             }
+    //         }
+    //     }
+
+    //     req.open('POST', '/ajax')
+    //     req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+    //     var time = new Date().format("yyyy-MM-dd hh:mm:ss")
+    //     var un = document.getElementById('scname').value
+    //     var postVars = 'username='+un+"&time="+time   //This is the request you send to the server
+    //     req.send(postVars)
+
+    //     return false
+    // }
+    $(document).ready(function() {
+        var socket = io.connect("http://127.0.0.1:5000");
+
+        socket.on('connection', function() {
+            socket.emit('connection', {'data': 'I\'m connected!'});
+        });
+
+        socket.on('connection success', function(msg) {
+            document.getElementById("hello").innerHTML = "<h2>"+"Hello, "+msg+"!"+"</h2>";
+        })
+
+        socket.on('my response', function(msg) {
+            document.getElementById("myDiv").innerHTML += "<p>" + msg.name + " at " + msg.time + "</p>" + msg.data + "<br>";
+            document.getElementById('scname').value = ''
+            // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+        });
+
+        $('form#emit').submit(function(event) {
+            //console.log(document.getElementById("scname").value);
+            socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
+            return false;
+        });
+
+        socket.on('new user', function(msg) {
+              //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
+            var length = msg.connected_users.length;
+            for (var i=0; i<length; i++) {
+              var li = document.createElement("li")
+              var button = document.createElement("BUTTON")
+              button.scname=msg.connected_users[i]
+              button.innerHTML += msg.connected_users[i]
+              //button.onclick = set_partner(button.scname)
+              li.innerHTML += button
+              document.getElementById("users").appendChild(li);
+            }
+        });
+
+        //function set_partner(user) {
+          //emit('set partner', user)
+        //}
+
+    });
+</script>
+
+<style type="text/css">
+    p {
+        font-weight:bold;
+    }
+</style>
+
+</head>
+
+<body>
+<h1><b>CN</b> Chat App</h1>
+<div id="hello"></div>
+<form action='/' method="GET">
+<input type="submit" value="log out">
+</form>
+<form id="emit" action="#" method="POST">
+<input type="text" name="scname" id="scname">
+<input type="submit" value="Submit">
+</form>
+<div id="myDiv" style="height:200px; overflow:scroll"></div>
+<h3>Users currently online:</h3>
+<ul id="users">
+<li> <button onclick=set_partner("all")>Everyone<button>
+</ul>
+</body>
+</html>
