@@ -84,16 +84,19 @@
           document.getElementById("users").innerHTML = "";
           var length = msg.connected_users.length;
           document.getElementById('users').innerHTML += '<ul>'
+          document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('all')>Everyone</button>"
           for (var i=0; i<length; i++) {
-              var li = document.createElement("li")
-              var button = document.createElement("BUTTON")
-              button.scname=msg.connected_users[i]
-              button.innerHTML += msg.connected_users[i]
-              //button.onclick = set_partner(button.scname)
-              li.innerHTML += button
-              document.getElementById("users").appendChild(li);
+            document.getElementById('users').innerHTML += "<li> <button onclick=set_partner(" + msg.connected_users[i]
+            + ")>"+ msg.connected_users[i] + "</button>"
+            //   var li = document.createElement("li")
+            //   var button = document.createElement("BUTTON")
+            //   button.scname=msg.connected_users[i]
+            //   button.innerHTML += msg.connected_users[i]
+            //   //button.onclick = set_partner(button.scname)
+            //   li.innerHTML += button
+            //   document.getElementById("users").appendChild(li);
             }
-          document.getElementById('users') += '</ul>';
+          document.getElementById('users').innerHTML += '</ul>';
         });
 
         //function set_partner(user) {
@@ -121,11 +124,10 @@
 <input type="text" name="scname" id="scname">
 <input type="submit" value="Submit">
 </form>
-<div id="myDiv" style="height:200px; overflow:scroll"></div>
+<div id="myDiv" style="width: 300px; height:200px; overflow:scroll"></div>
 <h3>Users currently online:</h3>
 <div id='users'>
 <ul>
-<li> <button onclick=set_partner("all")>Everyone</button>
 </ul>
 </div>
 </body>
