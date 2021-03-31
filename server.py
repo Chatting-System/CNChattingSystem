@@ -17,7 +17,7 @@ def test_connect():
 @socketio.on('disconnect')
 def test_disconnect():
     print("One user disconnect.")
-    emit("new user", {'connected_users': list(userinformation.keys())}, broadcast=True)
+    emit('disconnection', {'data': 'Disconnected'})
 
 @socketio.on('connection')
 def connection_success(message):
@@ -26,6 +26,7 @@ def connection_success(message):
     client_to_sock[msg] = request.sid
     sock_to_client[request.sid] = msg
     emit('connection success', msg)
+    print(list(client_to_sock.keys()))
     emit("new user", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
 
 @app.route('/', methods=['GET', 'POST'])
