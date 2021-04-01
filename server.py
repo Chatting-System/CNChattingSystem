@@ -16,8 +16,13 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
-    print("One user disconnect.")
-    emit('disconnection', {'data': 'Disconnected'})
+    username = session.pop('username')
+    print("CONNECTION UNESTBLISHED")
+    sid = sid = client_to_sock.pop(username)
+    sock_to_client.pop(sid)
+    print("{} user disconnect.".format(username))
+    print(list(client_to_sock.keys()))
+    emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
 
 @socketio.on('connection')
 def connection_success(message):
@@ -27,7 +32,8 @@ def connection_success(message):
     sock_to_client[request.sid] = msg
     emit('connection success', msg)
     print(list(client_to_sock.keys()))
-    emit("new user", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
+    emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def start():
@@ -45,6 +51,8 @@ def start():
             return render_template('login.html', error='Unknown username!')
         elif recordedpassword != password:
             return render_template('login.html', error='Wrong password!')
+        elif username in client_to_sock.keys():
+            return render_template('login.html', error="This account has already logged in!")
         else:
             session['username'] = username
             return render_template('test.html')

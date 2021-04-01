@@ -27,6 +27,7 @@
 }
 </script>
 <script type="text/javascript" charset="utf-8">
+    var username;
     // function loadXMLDoc()
     // {
     //     var req = new XMLHttpRequest()
@@ -64,6 +65,7 @@
         });
 
         socket.on('connection success', function(msg) {
+            username = msg;
             document.getElementById("hello").innerHTML = "<h2>"+"Hello, "+msg+"!"+"</h2>";
         })
 
@@ -79,7 +81,7 @@
             return false;
         });
 
-        socket.on('new user', function(msg) {
+        socket.on('user change', function(msg) {
               //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
           document.getElementById("users").innerHTML = "";
           var length = msg.connected_users.length;
