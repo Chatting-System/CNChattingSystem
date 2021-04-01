@@ -38,8 +38,6 @@ def connection_success(message):
 @app.route('/', methods=['GET', 'POST'])
 def start():
     if request.method == 'GET':
-        if session.get('username') != None:
-            session.pop('username')
         print("NEW CONNECTION")
         return render_template("login.html")
     else:
@@ -76,6 +74,16 @@ def toregister():
             userinformation[username] = password
             return render_template('register.html', success='Success!')
 
+@app.route('/create', methods=["POST"])
+def create_room():
+    room_name = request.form.get('room_name')
+    room_description = request.form.get('description')
+    room_password = request.form.get('room_password')
+    print(room_name)
+    print(room_description)
+    print(room_password)
+    print(room_password == '')
+    return render_template("test.html")
 
 
 @socketio.on('my event')

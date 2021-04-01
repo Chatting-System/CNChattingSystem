@@ -27,7 +27,6 @@
 }
 </script>
 <script type="text/javascript" charset="utf-8">
-    var username;
     // function loadXMLDoc()
     // {
     //     var req = new XMLHttpRequest()
@@ -57,6 +56,7 @@
 
     //     return false
     // }
+    
     $(document).ready(function() {
         var socket = io.connect("http://127.0.0.1:5000");
 
@@ -75,7 +75,7 @@
             // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
         });
 
-        $('form#emit').submit(function(event) {
+        $('#emit').submit(function(event) {
             //console.log(document.getElementById("scname").value);
             socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
             return false;
@@ -121,15 +121,32 @@
     }
 
     h3 {
+        font-size: 20px;
         position: absolute;
         left: 1000px;
         top: 0px;
+    }
+
+    h4 {
+        font-size: 20px;
+        position: absolute;
+        left: 700px;
+        top: -8px;
     }
 
     #users {
         position: absolute;
         left: 1000px;
         top: 30px;
+    }
+    
+    textarea {
+        resize: none;
+        width: 300px;
+        height: 100px;
+        border-color: grey;
+        border-width: 2px;
+        border-style: double;
     }
 </style>
 
@@ -141,9 +158,14 @@
 <form action='/' method="GET">
 <input type="submit" value="log out">
 </form>
-<form id="emit" action="#" method="POST">
+<!-- <form id="emit" action="#" method="POST">
 <input type="text" name="scname" id="scname">
 <input type="submit" value="Submit">
+</form> -->
+<textarea name="scname" id="scname">
+</textarea>
+<form id="emit" action="#" method="POST">
+    <input type="submit" value="submit">
 </form>
 <div id="myDiv"></div>
 <h3>Users currently online:</h3>
@@ -151,5 +173,17 @@
 <ul>
 </ul>
 </div>
+<h4>Current Chatting Rooms:</h4>
+<div id='chatting_room'></div>
+<ul>
+</ul>
+</div>
+<form id="create" action="/create" method="POST">
+    Room Name:<br><input type="text" name="room_name" id="room_name" required><br>
+    Room Description:<br><textarea name="description" id="description"></textarea><br>
+    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="text" name="room_password" id="room_password" placeholder=''><br>
+    <input type="submit" value="create">
+</form>
+</form>
 </body>
 </html>
