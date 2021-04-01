@@ -112,6 +112,25 @@
     p {
         font-weight:bold;
     }
+
+    #myDiv {
+        width: 300px; 
+        height:200px; 
+        overflow:scroll;
+        overflow-x: hidden;
+    }
+
+    h3 {
+        position: absolute;
+        left: 1000px;
+        top: 0px;
+    }
+
+    #users {
+        position: absolute;
+        left: 1000px;
+        top: 30px;
+    }
 </style>
 
 </head>
@@ -126,7 +145,7 @@
 <input type="text" name="scname" id="scname">
 <input type="submit" value="Submit">
 </form>
-<div id="myDiv" style="width: 300px; height:200px; overflow:scroll"></div>
+<div id="myDiv"></div>
 <h3>Users currently online:</h3>
 <div id='users'>
 <ul>
