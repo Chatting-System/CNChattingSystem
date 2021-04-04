@@ -81,9 +81,39 @@
             return false;
         });
 
+        $('#create').submit(function(event) {
+            room_name = document.getElementById("room_name").value;
+            room_description = document.getElementById("description").value;
+            room_password = document.getElementById("room_password").value;
+            socket.emit('create room', {'name': room_name, 'description': room_description, "password": room_password})
+            return false;
+        })
+
+        socket.on('new room', function(msg) {
+            console.log(msg.existing_rooms_ids)
+            console.log(msg.existing_rooms_names)
+            console.log(msg.existing_rooms_descriptions)
+            document.getElementById("chatting_room").innerHTML = "<h3>Current Chatting Rooms:</h3>";
+            var length = msg.existing_rooms_names.length;
+            document.getElementById('chatting_room').innerHTML += '<ul>';
+            for (var i=0; i<length; i++) {
+                document.getElementById('chatting_room').innerHTML += "<li> <button onclick=enter_room(" + msg.existing_rooms_ids[i]
+                + ")>"+ msg.existing_rooms_names[i] + "</button>" + "<br>" + msg.existing_rooms_descriptions[i]
+            }
+            document.getElementById('chatting_room').innerHTML += '</ul>';
+        });
+
+        socket.on('join success', function(msg) {
+            user = msg.user
+            room = msg.room
+            document.getElementById('welcome').innerHTML = '<h2>' + room + '</h2>'+ '<br>' + '<h2>Welcome ' + user + '!</h2>'
+            document.getElementById('whole_system').style.display = 'none'
+            document.getElementById('room').style.display = 'inline'
+        });
+
         socket.on('user change', function(msg) {
               //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
-          document.getElementById("users").innerHTML = "";
+          document.getElementById("users").innerHTML = "<h3>Users currently online:</h3>";
           var length = msg.connected_users.length;
           document.getElementById('users').innerHTML += '<ul>'
           document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('all')>Everyone</button>"
@@ -109,6 +139,16 @@
 </script>
 
 <style type="text/css">
+    #whole_system {
+        position: absolute;
+        display: block;
+    }
+
+    #room {
+        position: absolute;
+        display: none;
+    }
+
     p {
         font-weight:bold;
     }
@@ -120,26 +160,21 @@
         overflow-x: hidden;
     }
 
-    h3 {
-        font-size: 20px;
+    #users {
+        width: 300px;
         position: absolute;
-        left: 1000px;
+        left: 1200px;
         top: 0px;
     }
-
-    h4 {
-        font-size: 20px;
-        position: absolute;
-        left: 700px;
-        top: -8px;
-    }
-
-    #users {
-        position: absolute;
-        left: 1000px;
-        top: 30px;
-    }
     
+    #chatting_room {
+        width: 300px; 
+        position: absolute;
+        left: 900px;
+        top: 0px;
+        overflow-x: auto;
+    }
+
     textarea {
         resize: none;
         width: 300px;
@@ -154,38 +189,51 @@
 
 <body>
 <h1><b>CN</b> Chat App</h1>
+
+<div id=whole_system>
 <div id="hello"></div>
+
 <form action='/' method="GET">
 <input type="submit" value="log out">
 </form>
+
 <!-- <form id="emit" action="#" method="POST">
 <input type="text" name="scname" id="scname">
 <input type="submit" value="Submit">
 </form> -->
-<textarea name="scname" id="scname">
-</textarea>
+
 <form id="emit" action="#" method="POST">
+    <textarea name="scname" id="scname"></textarea>
     <input type="submit" value="submit">
 </form>
+
+
 <div id="myDiv"></div>
-<h3>Users currently online:</h3>
+
 <div id='users'>
-<ul>
-</ul>
+<h3>Users currently online:</h3>
 </div>
-<h4>Current Chatting Rooms:</h4>
-<div id='chatting_room'></div>
-<ul>
-</ul>
+
+<div id='chatting_room'>
+<h3>Current Chatting Rooms:</h3>
 </div>
-<h2>You can create new chatting room from here:
-</h2>
-<form id="create" action="/create" method="POST">
+
+<h2>You can create new chatting room from here:</h2>
+<form id="create" action="#" method="POST">
     Room Name:<br><input type="text" name="room_name" id="room_name" required><br>
     Room Description:<br><textarea name="description" id="description"></textarea><br>
-    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="text" name="room_password" id="room_password" placeholder=''><br>
+    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="text" name="room_password" id="room_password"><br>
     <input type="submit" value="create">
 </form>
-</form>
+
+</div>
+
+<div id='room'>
+
+<div id='welcome'></div>
+
+
+</div>
+
 </body>
 </html>
