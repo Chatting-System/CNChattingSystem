@@ -56,9 +56,12 @@
 
     //     return false
     // }
+    var socket = io.connect("http://127.0.0.1:5000");
+    function enter_room(rid) {
+        socket.emit('enter room', {'rid': rid})
+    }
     
     $(document).ready(function() {
-        var socket = io.connect("http://127.0.0.1:5000");
 
         socket.on('connection', function() {
             socket.emit('connection', {'data': 'I\'m connected!'});
@@ -90,15 +93,13 @@
         })
 
         socket.on('new room', function(msg) {
-            console.log(msg.existing_rooms_ids)
-            console.log(msg.existing_rooms_names)
-            console.log(msg.existing_rooms_descriptions)
             document.getElementById("chatting_room").innerHTML = "<h3>Current Chatting Rooms:</h3>";
             var length = msg.existing_rooms_names.length;
             document.getElementById('chatting_room').innerHTML += '<ul>';
             for (var i=0; i<length; i++) {
+                console.log(msg.existing_rooms_ids[i])
                 document.getElementById('chatting_room').innerHTML += "<li> <button onclick=enter_room(" + msg.existing_rooms_ids[i]
-                + ")>"+ msg.existing_rooms_names[i] + "</button>" + "<br>" + msg.existing_rooms_descriptions[i]
+                + ")>"+ msg.existing_rooms_names[i] + "</button>" + "<br>" + msg.existing_rooms_descriptions[i] + "<br>" + msg.type
             }
             document.getElementById('chatting_room').innerHTML += '</ul>';
         });
@@ -106,7 +107,20 @@
         socket.on('join success', function(msg) {
             user = msg.user
             room = msg.room
-            document.getElementById('welcome').innerHTML = '<h2>' + room + '</h2>'+ '<br>' + '<h2>Welcome ' + user + '!</h2>'
+            rid = msg.rid
+            members = msg.members
+            if (document.getElementById('welcome').innerHTML == '') {
+                document.getElementById('welcome').innerHTML = '<h2>' + room + '</h2>'+ '<br>' + '<h2>Welcome ' + user + '!</h2>'
+            }
+            document.getElementById('rid').value = rid
+
+            document.getElementById('members').innerHTML = '<h3>Current members in this room:</h3>'
+            document.getElementById('members').innerHTML += '<ul>'
+            var length = members.length;
+            for (var i=0; i<length; i++) {
+                document.getElementById('members').innerHTML += "<li>" + members[i]
+            }
+
             document.getElementById('whole_system').style.display = 'none'
             document.getElementById('room').style.display = 'inline'
         });
@@ -160,7 +174,7 @@
         overflow-x: hidden;
     }
 
-    #users {
+    #users, #members {
         width: 300px;
         position: absolute;
         left: 1200px;
@@ -231,9 +245,16 @@
 <div id='room'>
 
 <div id='welcome'></div>
+<input type='hidden' id='rid' name='rid'/>
 
+
+<form id="room_emit" action="#" method="POST">
+    <textarea name="scname" id="scname"></textarea>
+    <input type="submit" value="submit">
+</form>
+
+<div id='members'></div>
 
 </div>
-
 </body>
 </html>

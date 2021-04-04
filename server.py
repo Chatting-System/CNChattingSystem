@@ -16,6 +16,8 @@ chat_private = {}
 id_to_name = {} 
 id_to_description = {}
 room_stored = {} #This dic contains room_id, room_name, description and password. This should not be sent back to the client
+members_information = {}
+number = 0 #This number acts as the id of room so it should be incremented
 
 @socketio.on('connect')
 def test_connect():
@@ -88,17 +90,33 @@ def toregister():
 
 @socketio.on("create room")
 def create_room(msg):
+    global number
     name = msg.get('name')
     description = msg.get('description')
     password = msg.get('password', None)
     user = session['username']
-    rid = str(uuid.uuid1().int)
+    rid = str(number)
     id_to_name[rid] = name
     id_to_description[rid] = description
     room_stored[rid] = [name, description, password]
-    emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values())}, broadcast=True)
+    if password == '':
+        emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': 'Public'}, broadcast=True)
+    else:
+        emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': 'Private'}, broadcast=True)
     join_room(rid)
-    emit('join success', {'user': user, 'room': name}, room = rid)
+    members_information[rid] = [user]
+    emit('join success', {'user': user, 'room': name, 'rid': rid, 'members': members_information[rid]}, room = rid)
+    number += 1
+
+@socketio.on('enter room')
+def enter_room(msg):
+    rid = str(msg.get('rid'))
+    name = id_to_name[rid]
+    user = session.get('username')
+    join_room(rid)
+    members_information[rid].append(user)
+    emit('join success', {'user': user, 'room': name, 'rid': rid, 'members': members_information[rid]}, room = rid)
+
 
 # @app.route('/create', methods=["POST"])
 # def create_room():
