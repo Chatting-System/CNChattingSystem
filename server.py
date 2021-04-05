@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_socketio import SocketIO, emit, send
-from flask_socketio import join_room, leave_room
+from flask_socketio import join_room, leave_room, close_room
 import uuid
 import re
 
@@ -15,6 +15,8 @@ chat_private = {}
 #room database
 id_to_name = {} 
 id_to_description = {}
+id_to_type = {}
+id_to_creator = {}
 room_stored = {} #This dic contains room_id, room_name, description and password. This should not be sent back to the client
 members_information = {}
 number = 0 #This number acts as the id of room so it should be incremented
@@ -26,12 +28,34 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
-    username = session.pop('username')
+    user = session.pop('username')
     print("CONNECTION UNESTBLISHED")
-    sid = client_to_sock.pop(username)
+    sid = client_to_sock.pop(user)
     sock_to_client.pop(sid)
-    print("{} user disconnect.".format(username))
-    print(list(client_to_sock.keys()))
+    rid = ''
+    for key in members_information.keys():
+        if user in members_information[key]:
+            rid = str(key)
+    
+    if rid != '':
+        name = id_to_name[rid]
+        creator = room_stored[rid][3]
+        if user != creator:
+            #In this case, it means the exiting person is not the creator of the room
+            leave_room(name)
+            members_information[rid].remove(user)
+            emit('join success', {'room': name, 'rid': rid, 'members': members_information[rid]}, room = name)
+        else:
+            #In this case, it means the exiting person is the creator of the room
+            emit('exit success', {'data': 'exit success'}, room = name)
+            close_room(name)
+            id_to_name.pop(rid)
+            id_to_description.pop(rid)
+            id_to_type.pop(rid)
+            id_to_creator.pop(rid)
+            room_stored.pop(rid)
+            members_information.pop(rid)
+            emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
     emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
 
 @socketio.on('connection')
@@ -43,8 +67,7 @@ def connection_success(message):
     emit('connection success', msg)
     print(list(client_to_sock.keys()))
     emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
-    emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values())}, broadcast=True)
-
+    emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def start():
@@ -98,24 +121,72 @@ def create_room(msg):
     rid = str(number)
     id_to_name[rid] = name
     id_to_description[rid] = description
-    room_stored[rid] = [name, description, password]
     if password == '':
-        emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': 'Public'}, broadcast=True)
+        id_to_type[rid] = 'Public'
     else:
-        emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': 'Private'}, broadcast=True)
-    join_room(rid)
+        id_to_type[rid] = 'Private'
+    id_to_creator[rid] = user
+    room_stored[rid] = [name, description, password, user]
+    emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
+    join_room(name)
     members_information[rid] = [user]
-    emit('join success', {'user': user, 'room': name, 'rid': rid, 'members': members_information[rid]}, room = rid)
+    emit('join success', {'room': name, 'rid': rid, 'members': members_information[rid]}, room = name)
     number += 1
 
 @socketio.on('enter room')
 def enter_room(msg):
     rid = str(msg.get('rid'))
     name = id_to_name[rid]
+    r_type = id_to_type[rid]
     user = session.get('username')
-    join_room(rid)
-    members_information[rid].append(user)
-    emit('join success', {'user': user, 'room': name, 'rid': rid, 'members': members_information[rid]}, room = rid)
+    if r_type == 'Public':
+        join_room(name)
+        members_information[rid].append(user)
+        emit('join success', {'room': name, 'rid': rid, 'members': members_information[rid]}, room = name)
+    else:
+        emit('auth', {'rid': rid}, room=request.sid)
+
+@socketio.on('please auth')
+def auth(msg):
+    authpassword = msg.get('authpassword')
+    authrid = str(msg.get('authrid'))
+    password = room_stored[authrid][2]
+    if authpassword == password:
+        user = session.get('username')
+        rid = authrid
+        name = id_to_name[rid]
+        join_room(name)
+        members_information[rid].append(user)
+        emit('join success', {'room': name, 'rid': rid, 'members': members_information[rid]}, room = name)
+    else:
+        emit('auth fail', {'data': 'data'}, room=request.sid)
+
+@socketio.on('exit room')
+def exit_room(msg):
+    user = session.get('username')
+    rid = str(msg.get('rid'))
+    name = id_to_name[rid]
+    creator = room_stored[rid][3]
+    if user != creator:
+        #In this case, it means the exiting person is not the creator of the room
+        leave_room(name)
+        members_information[rid].remove(user)
+        emit('join success', {'room': name, 'rid': rid, 'members': members_information[rid]}, room = name)
+        emit('exit success', {'data': 'exit success'}, room = request.sid)
+    else:
+        #In this case, it means the exiting person is the creator of the room
+        emit('exit success', {'data': 'exit success'}, room = name)
+        close_room(name)
+        id_to_name.pop(rid)
+        id_to_description.pop(rid)
+        id_to_type.pop(rid)
+        id_to_creator.pop(rid)
+        room_stored.pop(rid)
+        members_information.pop(rid)
+        emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
+
+
+
 
 
 # @app.route('/create', methods=["POST"])
@@ -140,6 +211,15 @@ def enter_room(msg):
 #     room_name = room_stored[room_id][0]
 #     join_room(room_name)
 #     return render_template("room.html", room_name = room_name, username=username)
+
+@socketio.on('room chatting')
+def room_emit(msg):
+    data = msg.get('msg')
+    rid = str(msg.get('room'))
+    name = id_to_name[rid]
+    time = msg.get('time')
+
+    emit('room response', {'data': data, 'time': time, "name": session.get('username')}, room=name)
 
 @socketio.on('my event')
 def my_event(message):

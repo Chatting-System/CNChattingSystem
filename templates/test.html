@@ -60,6 +60,21 @@
     function enter_room(rid) {
         socket.emit('enter room', {'rid': rid})
     }
+
+    function back() {
+        document.getElementById("auth").style.display = "none"
+        document.getElementById("whole_system").style.display = 'inline'
+    }
+
+    function into() {
+        authpassword = document.getElementById('authpassword').value
+        authrid = document.getElementById('authrid').value
+        socket.emit('please auth', {'authpassword': authpassword, 'authrid': authrid})
+    }
+
+    function exit() {
+        socket.emit('exit room', {'rid': document.getElementById('rid').value})
+    }
     
     $(document).ready(function() {
 
@@ -70,6 +85,7 @@
         socket.on('connection success', function(msg) {
             username = msg;
             document.getElementById("hello").innerHTML = "<h2>"+"Hello, "+msg+"!"+"</h2>";
+            document.getElementById("welcome").innerHTML = "<h2>Welcome " + msg + "!</h2>";
         })
 
         socket.on('my response', function(msg) {
@@ -78,11 +94,21 @@
             // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
         });
 
+        socket.on('room response', function(msg) {
+            document.getElementById("room_box").innerHTML += "<p>" + msg.name + " at " + msg.time + "</p>" + msg.data + "<br>";
+            document.getElementById('room_text').value = ''
+        })
+
         $('#emit').submit(function(event) {
             //console.log(document.getElementById("scname").value);
             socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
             return false;
         });
+
+        $('#room_emit').submit(function(event) {
+            socket.emit('room chatting', {'msg': document.getElementById("room_text").value, 'room': document.getElementById('rid').value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
+            return false;
+        })
 
         $('#create').submit(function(event) {
             room_name = document.getElementById("room_name").value;
@@ -97,23 +123,25 @@
             var length = msg.existing_rooms_names.length;
             document.getElementById('chatting_room').innerHTML += '<ul>';
             for (var i=0; i<length; i++) {
-                console.log(msg.existing_rooms_ids[i])
                 document.getElementById('chatting_room').innerHTML += "<li> <button onclick=enter_room(" + msg.existing_rooms_ids[i]
-                + ")>"+ msg.existing_rooms_names[i] + "</button>" + "<br>" + msg.existing_rooms_descriptions[i] + "<br>" + msg.type
+                + ")>"+ msg.existing_rooms_names[i] + "</button>" + "<br>" + "Creator:" + msg.creator[i] + "<br>"+ msg.existing_rooms_descriptions[i] + "<br>" + msg.type[i]
             }
             document.getElementById('chatting_room').innerHTML += '</ul>';
         });
+        
+        socket.on('auth', function(msg) {
+            document.getElementById('authrid').value = msg.rid
+            document.getElementById('whole_system').style.display = 'none'
+            document.getElementById('auth').style.display = 'inline'
+        })
 
         socket.on('join success', function(msg) {
-            user = msg.user
             room = msg.room
             rid = msg.rid
             members = msg.members
-            if (document.getElementById('welcome').innerHTML == '') {
-                document.getElementById('welcome').innerHTML = '<h2>' + room + '</h2>'+ '<br>' + '<h2>Welcome ' + user + '!</h2>'
-            }
             document.getElementById('rid').value = rid
 
+            document.getElementById('room_info').innerHTML = "<h2>" + room + "</h2>"
             document.getElementById('members').innerHTML = '<h3>Current members in this room:</h3>'
             document.getElementById('members').innerHTML += '<ul>'
             var length = members.length;
@@ -121,9 +149,22 @@
                 document.getElementById('members').innerHTML += "<li>" + members[i]
             }
 
+            document.getElementById('errormsg').innerHTML = ''
+            document.getElementById('authpassword').value = ''
             document.getElementById('whole_system').style.display = 'none'
             document.getElementById('room').style.display = 'inline'
+            document.getElementById('auth').style.display = 'none'
         });
+
+        socket.on('auth fail', function() {
+            document.getElementById('errormsg').innerHTML = '<p>Inaccurate Password</p>'
+        })
+
+        socket.on('exit success', function() {
+            document.getElementById('room_box').innerHTML = ''
+            document.getElementById('whole_system').style.display = 'inline'
+            document.getElementById('room').style.display = 'none'
+        })
 
         socket.on('user change', function(msg) {
               //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
@@ -158,7 +199,7 @@
         display: block;
     }
 
-    #room {
+    #room, #auth {
         position: absolute;
         display: none;
     }
@@ -167,7 +208,7 @@
         font-weight:bold;
     }
 
-    #myDiv {
+    #myDiv, #room_box {
         width: 300px; 
         height:200px; 
         overflow:scroll;
@@ -236,7 +277,7 @@
 <form id="create" action="#" method="POST">
     Room Name:<br><input type="text" name="room_name" id="room_name" required><br>
     Room Description:<br><textarea name="description" id="description"></textarea><br>
-    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="text" name="room_password" id="room_password"><br>
+    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="password" name="room_password" id="room_password"><br>
     <input type="submit" value="create">
 </form>
 
@@ -245,16 +286,30 @@
 <div id='room'>
 
 <div id='welcome'></div>
+<div id='room_info'></div>
+<button id='exit_room' onclick='exit()'>Leave the room</button>
 <input type='hidden' id='rid' name='rid'/>
 
 
 <form id="room_emit" action="#" method="POST">
-    <textarea name="scname" id="scname"></textarea>
+    <textarea name="room_text" id="room_text"></textarea>
     <input type="submit" value="submit">
 </form>
+
+<div id="room_box"></div>
 
 <div id='members'></div>
 
 </div>
+
+<div id="auth">
+<button id='back' onclick='back()'>Go back</button>
+<h2>If you want to enter this room, please enter the password here:</h2>
+<input type="password" name='authpassword' id='authpassword'>
+<button id='into' onclick='into()'>Enter</button>
+<input type='hidden' name='authrid' id='authrid'>
+<div id='errormsg'></div>
+</div>
+
 </body>
 </html>
