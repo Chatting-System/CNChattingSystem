@@ -75,7 +75,23 @@
     function exit() {
         socket.emit('exit room', {'rid': document.getElementById('rid').value})
     }
-    
+
+    function set_partner(partner) {
+        socket.emit('set partner',partner)
+    }
+
+    function set_colormode(mode) {
+        if(mode=="dark"){
+            var color1 = "#0b3f4d"
+            var color2 = "#255c6b"
+        }
+        else if(mode=="light"){
+            var color1
+            var color2
+        }
+
+    }
+
     $(document).ready(function() {
 
         socket.on('connection', function() {
@@ -89,13 +105,19 @@
         })
 
         socket.on('my response', function(msg) {
-            document.getElementById("myDiv").innerHTML += "<p>" + msg.name + " at " + msg.time + "</p>" + msg.data + "<br>";
-            document.getElementById('scname').value = ''
+            if (msg.private==0) {
+                document.getElementById("myDiv").innerHTML += "<p class='msg-title'><span class='user-name'>" + msg.name + "</span> at " + msg.time + "</p><p>" + msg.data + "</p>";
+                document.getElementById('scname').value = ''
+            } else {
+                //document.getElementById("myDiv").innerHTML += '<p style="color:red;"><br> (privately to ' + msg.to + ')</p>';
+                document.getElementById("myDiv").innerHTML += "<p class='msg-title'><span class='user-name'>" + msg.name + "</span> at " + msg.time + "<span class='private-text'> (privately to " + msg.to +")</p><p>" + msg.data + "</p>";
+                document.getElementById('scname').value = ''
             // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+            }
         });
 
         socket.on('room response', function(msg) {
-            document.getElementById("room_box").innerHTML += "<p>" + msg.name + " at " + msg.time + "</p>" + msg.data + "<br>";
+            document.getElementById("room_box").innerHTML += "<p class='msg-title'>" + msg.name + " at " + msg.time + "</p>"+"<p>" + msg.data + "</p><br>";
             document.getElementById('room_text').value = ''
         })
 
@@ -121,6 +143,9 @@
         socket.on('new room', function(msg) {
             document.getElementById("chatting_room").innerHTML = "<h3>Current Chatting Rooms:</h3>";
             var length = msg.existing_rooms_names.length;
+            if(length==0){
+                document.getElementById('chatting_room').innerHTML += "No chatrooms currently open"
+            }
             document.getElementById('chatting_room').innerHTML += '<ul>';
             for (var i=0; i<length; i++) {
                 document.getElementById('chatting_room').innerHTML += "<li> <button onclick=enter_room(" + msg.existing_rooms_ids[i]
@@ -128,7 +153,7 @@
             }
             document.getElementById('chatting_room').innerHTML += '</ul>';
         });
-        
+
         socket.on('auth', function(msg) {
             document.getElementById('authrid').value = msg.rid
             document.getElementById('whole_system').style.display = 'none'
@@ -141,7 +166,7 @@
             members = msg.members
             document.getElementById('rid').value = rid
 
-            document.getElementById('room_info').innerHTML = "<h2>" + room + "</h2>"
+            document.getElementById('room_info').innerHTML = "<h2> Chatroom: " + room + "</h2>"
             document.getElementById('members').innerHTML = '<h3>Current members in this room:</h3>'
             document.getElementById('members').innerHTML += '<ul>'
             var length = members.length;
@@ -167,34 +192,89 @@
         })
 
         socket.on('user change', function(msg) {
-              //socket.emit('my event', {'data': "entered if statement", 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
-          document.getElementById("users").innerHTML = "<h3>Users currently online:</h3>";
+          //create list of buttons of users currently online
+          document.getElementById("users").innerHTML = "<h3>Send message to:</h3>";
           var length = msg.connected_users.length;
           document.getElementById('users').innerHTML += '<ul>'
           document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('all')>Everyone</button>"
           for (var i=0; i<length; i++) {
-            document.getElementById('users').innerHTML += "<li> <button onclick=set_partner(" + msg.connected_users[i]
-            + ")>"+ msg.connected_users[i] + "</button>"
-            //   var li = document.createElement("li")
-            //   var button = document.createElement("BUTTON")
-            //   button.scname=msg.connected_users[i]
-            //   button.innerHTML += msg.connected_users[i]
-            //   //button.onclick = set_partner(button.scname)
-            //   li.innerHTML += button
-            //   document.getElementById("users").appendChild(li);
+            document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('"+msg.connected_users[i]+"')>"+ msg.connected_users[i] + "</button>"
             }
           document.getElementById('users').innerHTML += '</ul>';
         });
 
-        //function set_partner(user) {
-          //emit('set partner', user)
-        //}
+        socket.on('set partner success', function(msg){
+          if(msg == "all"){
+            document.getElementById("myDiv").innerHTML += "<p> [notice] Now sending to everyone.</p><br>";
+          }
+          else {
+            document.getElementById("myDiv").innerHTML += "<p> [notice] Now sending privately to " + msg + ".</p><br>";
+          }
+        })
+
+        $('#nightmode').click(function (){
+            var bg_color = "#0b3f4d"
+            var bg_light = "#255c6b"
+            var text_color = "#cee7ed"
+            var line_color = "#2a8eeb"
+            $("body").css("background-color", bg_color);
+            $(".text").css("color", text_color);
+            $(".chat-input").css("color", text_color);
+            $(".chat-input").css("background-color", bg_light);
+            $("#myDiv").css("background-color",bg_light);
+            $("#room_box").css("background-color",bg_light);
+            $("#container").css("background-color",bg_light);
+            $("hr").css("border-color",line_color);
+        })
+
+        $('#daymode').click(function (){
+            var bg_color = "#ffffff"
+            var bg_light = "#defaf9"
+            var text_color = "#000000"
+            var line_color = "#0b3f4d"
+            $("body").css("background-color", bg_color);
+            $(".text").css("color", text_color);
+            $(".chat-input").css("color", text_color);
+            $(".chat-input").css("background-color", bg_light);
+            $("#myDiv").css("background-color",bg_light);
+            $("#room_box").css("background-color",bg_light);
+            $("#container").css("background-color",bg_light);
+            $("hr").css("border-color",line_color);
+
+        })
 
     });
 </script>
 
 <style type="text/css">
-    #whole_system {
+
+    body {
+        background-color: #0b3f4d;
+    }
+
+    h1 {
+
+    }
+
+    p {
+        position: relative;
+        left:10px;
+
+    }
+
+    .msg-title {
+        font-weight:bold;
+        position: relative;
+        left:8px;
+        margin-bottom: -5px;
+    }
+
+    hr {
+        border-color: #2a8eeb;
+        border-width: thick;
+    }
+
+   #whole_system {
         position: absolute;
         display: block;
     }
@@ -204,30 +284,76 @@
         display: none;
     }
 
-    p {
-        font-weight:bold;
+    .text {
+        color: #cee7ed;
+    }
+
+    .private-text {
+        color: #731d27;
     }
 
     #myDiv, #room_box {
-        width: 300px; 
-        height:200px; 
+        width: 500px;
+        height:400px;
         overflow:scroll;
         overflow-x: hidden;
+        border-style: solid;
+        border-width: thin;
+        border-radius: 5px;
+        background-color: #255c6b
+
     }
 
-    #users, #members {
-        width: 300px;
-        position: absolute;
-        left: 1200px;
-        top: 0px;
+    .chat-input {
+      width: 500px;
+      height:25px;
+      border-style: solid;
+      border-width: thin;
+      border-radius: 5px;
+      background-color: #255c6b;
+      color: #cee7ed;
     }
-    
-    #chatting_room {
-        width: 300px; 
+
+    #container {
         position: absolute;
-        left: 900px;
-        top: 0px;
+        width: 350px;
+        height: 800px;
+        left:730px;
+        top:20px;
+        border-style: solid;
+        border-width: thin;
+        background-color: #255c6b
+    }
+
+    #users {
+        width: 300px;
+        height: 300px;
+        position:relative;
+        left:20px;
         overflow-x: auto;
+    }
+
+    #members {
+      width: 300px;
+      height: 300px;
+      position:absolute;
+      top: 115px;
+      left: 600px;
+      overflow-x: auto;
+    }
+
+    #chatting_room {
+        width: 300px;
+        height: 300px;
+        position:relative;
+        left: 20px;
+        overflow-x: auto;
+    }
+
+    #logout {
+       position:absolute;
+       left:430px;
+       top: 30px;
     }
 
     textarea {
@@ -238,46 +364,67 @@
         border-width: 2px;
         border-style: double;
     }
+
+    #daymode {
+        position: absolute;
+        top:40px;
+        left:860px;
+    }
+
+    #nightmode {
+        position: absolute;
+        top:40px;
+        left:940px;
+    }
+
+    #scname, #room_name, #room_password {
+        border-color: grey;
+        border-width: 2px;
+        border-style: double;
+    }
+
 </style>
 
 </head>
 
 <body>
-<h1><b>CN</b> Chat App</h1>
+<h1 class="text"><b>CN</b> Chat App</h1>
+<input type="button" id="daymode" value="day mode">
+<input type="button" id="nightmode" value="night mode">
+<hr>
+
 
 <div id=whole_system>
-<div id="hello"></div>
+<div id="hello" class="text"></div>
 
 <form action='/' method="GET">
-<input type="submit" value="log out">
+<input id="logout" type="submit" value="log out">
 </form>
 
-<!-- <form id="emit" action="#" method="POST">
-<input type="text" name="scname" id="scname">
-<input type="submit" value="Submit">
-</form> -->
+<div id="myDiv" class="text"></div>
 
-<form id="emit" action="#" method="POST">
-    <textarea name="scname" id="scname"></textarea>
-    <input type="submit" value="submit">
-</form>
-
-
-<div id="myDiv"></div>
-
-<div id='users'>
-<h3>Users currently online:</h3>
+<div id="container" class="text">
+<div id='users' class="text">
+<h3>Send message to:</h3>
 </div>
 
-<div id='chatting_room'>
+<div id='chatting_room' class="text">
 <h3>Current Chatting Rooms:</h3>
 </div>
+</div>
 
-<h2>You can create new chatting room from here:</h2>
-<form id="create" action="#" method="POST">
-    Room Name:<br><input type="text" name="room_name" id="room_name" required><br>
-    Room Description:<br><textarea name="description" id="description"></textarea><br>
-    Room Password:<br>(If you put nothing here, it means this room is available to everybody)<br><input type="password" name="room_password" id="room_password"><br>
+<div class="chat-input">
+<form id="emit" action="#" method="POST">
+    <input type="text" size="60" name="scname" id="scname"></input>
+    <input type="submit" value="submit">
+</form>
+</div>
+
+<h2 class="text">Create a new chatting room:</h2>
+<form id="create" action="#" method="POST" class="text">
+    <b>Room Name:</b><br><input type="text" name="room_name" id="room_name" required><br>
+    <b>Room Description:</b><br><textarea name="description" id="description"></textarea><br>
+    <b>Room Password:</b><br>(If you put nothing here, it means this room is available to everybody)<br><input type="password" name="room_password" id="room_password"><br>
     <input type="submit" value="create">
 </form>
 
@@ -285,20 +432,20 @@
 
 <div id='room'>
 
-<div id='welcome'></div>
-<div id='room_info'></div>
+<div id='welcome' class="text"></div>
+<div id='room_info' class ="text"></div>
 <button id='exit_room' onclick='exit()'>Leave the room</button>
 <input type='hidden' id='rid' name='rid'/>
 
 
-<form id="room_emit" action="#" method="POST">
-    <textarea name="room_text" id="room_text"></textarea>
+<div id="room_box" class="text"></div>
+
+<form id="room_emit" action="#" method="POST" class="chat-input">
+    <input type="text" name="room_text" id="room_text" size="60"></input>
     <input type="submit" value="submit">
 </form>
 
-<div id="room_box"></div>
-
-<div id='members'></div>
+<div id='members' class="text"></div>
 
 </div>
 

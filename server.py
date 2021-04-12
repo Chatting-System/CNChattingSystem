@@ -224,21 +224,30 @@ def room_emit(msg):
 @socketio.on('my event')
 def my_event(message):
     try:
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username')},
+        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                             "private": 1, "to": "you"},
              room=client_to_sock[chat_private[session.get('username')]])
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username')},
+        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                             "private": 1, "to": chat_private[session.get('username')]},
              room=request.sid)
-    except:
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username')},
-             broadcast=True)
+    except KeyError:
+        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                             "private": 0}, broadcast=True)
 
 @socketio.on('set partner')
 def set_partner(msg):
+    print("set partner request received")
     if msg == "all":
-        del chat_private[session.get('username')]
-        print("sending to everyone")
-    else:
+        try:
+            del chat_private[session.get('username')]
+            print("sending to everyone")
+            emit('set partner success', msg)
+        except KeyError:
+            print("still sending to everyone")
+    elif msg != session.get('username'):
+        print(f"setting {msg} as partner")
         chat_private[session.get('username')] = msg
+        emit('set partner success', msg)
 
 
 # @app.route('/ajax', methods = ['POST'])
