@@ -27,7 +27,7 @@ leave a chatting room
 
 File lists:
 |---README.txt
-|---.ideas
+|---.idea
 |---templates
 |   |---login.html
 |   |---register.html
