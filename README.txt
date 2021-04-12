@@ -2,6 +2,7 @@ Summary: This system is a simple chatting system, whose key functions are: allow
 Besides this, we also add more functions in the system by refering to some functions of Zoom. 
 
 configuration: 
+main languages: Python, html, javascript
 interpreter: Python 3.6
 python inital modules: re
 extra python modules: flask, flask_socketio
