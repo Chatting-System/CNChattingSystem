@@ -26,6 +26,7 @@ view and send meassages in a chatting room
 leave a chatting room
 
 File lists:
+|---README.txt
 |---.ideas
 |---templates
 |   |---login.html
