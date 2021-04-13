@@ -10,7 +10,7 @@
 
         $('form#login').submit(function(event) {
             //console.log(document.getElementById("scname").value);
-            socket.emit('log in', {'username': document.getElementById("username").value, 
+            socket.emit('log in', {'username': document.getElementById("username").value,
             'password': document.getElementById("password").value});
             return false;
         });
@@ -27,22 +27,107 @@
 
     })
 </script> -->
+
+<script type="text/javascript" charset="utf-8">
+
+  $(document).ready(function() {
+      $('#nightmode').click(function (){
+          var bg_color = "#0b3f4d"
+          var bg_light = "#255c6b"
+          var text_color = "#cee7ed"
+          var line_color = "#2a8eeb"
+          $("body").css("background-color", bg_color);
+          $(".text").css("color", text_color);
+          $("hr").css("border-color",line_color);
+      })
+
+      $('#daymode').click(function (){
+          var bg_color = "#ffffff"
+          var bg_light = "#defaf9"
+          var text_color = "#000000"
+          var line_color = "#0b3f4d"
+          $("body").css("background-color", bg_color);
+          $(".text").css("color", text_color);
+          $("hr").css("border-color",line_color);
+      })
+
+    })
+</script>
+
+
+<style type="text/css">
+
+    body {
+        background-color: #0b3f4d;
+    }
+
+    .text {
+        color: #cee7ed;
+    }
+
+    hr {
+        border-color: #2a8eeb;
+        border-width: thick;
+    }
+
+    #daymode {
+        position: absolute;
+        top:40px;
+        left:860px;
+    }
+
+    #nightmode {
+        position: absolute;
+        top:40px;
+        left:940px;
+    }
+
+    #login {
+        float:left;
+    }
+
+    #register {
+        float:left;
+        position:relative;
+        left: 100px;
+        top: 15px;
+    }
+
+    #error {
+        position:relative;
+        left:100px;
+        top:5px;
+    }
+
+</style>
 </head>
 
 <body>
-    <h1>Please log in!</h1>
-    <form id='login' action='/' method='POST'>
+  <h1 class="text"><b>CN</b> Chat App</h1>
+  <input type="button" id="daymode" value="day mode">
+  <input type="button" id="nightmode" value="night mode">
+  <hr>
+
+
+  <div id="login">
+    <h1 class="text">Please log in!</h1>
+    <form id='login' action='/' method='POST' class="text">
         Your username:<input type="text" name="username" id="username" required><br>
         Your password:<input type="password" name="password" id="password" required><br>
         <input type="submit" value="login">
     </form>
-    <div>
+  </div>
+
+
+  <div id="register">
+    <div class="text" id="error">
     {% if error %}
         <h2>{{error}}</h2>
     {% endif %}
     </div>
-    <form id='register' action='/register' method='GET'>
-        If you don't have an account, please register here.<br>
+    <form id='register' action='/register' method='GET' class="text">
+        If you don't have an account, please register here.
         <input type="submit" value="register">
     </form>
+  </div>
 </body>

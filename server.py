@@ -106,7 +106,7 @@ def toregister():
         if find_existing_username != 'NULL':
             return render_template('register.html', error='The username already exists!')
         elif confirm != password:
-            return render_template('register.html', error='Your password and confirm are not the same!')
+            return render_template('register.html', error='The passwords do not match!')
         else:
             userinformation[username] = password
             return render_template('register.html', success='Success!')

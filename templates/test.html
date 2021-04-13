@@ -28,35 +28,6 @@
 </script>
 <script type="text/javascript" charset="utf-8">
 
-    // function loadXMLDoc()
-    // {
-    //     var req = new XMLHttpRequest()
-    //     req.onreadystatechange = function()
-    //     {
-    //         if (req.readyState == 4)
-    //         {
-    //             if (req.status != 200)
-    //             {
-    //                 //error handling code here
-    //             }
-    //             else
-    //             {
-    //                 var response = JSON.parse(req.responseText)
-    //                 document.getElementById('myDiv').innerHTML += "<p>"+response.time+"</p>"+response.username+"<br>"
-    //                 document.getElementById('scname').value = ''
-    //             }
-    //         }
-    //     }
-
-    //     req.open('POST', '/ajax')
-    //     req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    //     var time = new Date().format("yyyy-MM-dd hh:mm:ss")
-    //     var un = document.getElementById('scname').value
-    //     var postVars = 'username='+un+"&time="+time   //This is the request you send to the server
-    //     req.send(postVars)
-
-    //     return false
-    // }
     var socket = io.connect("http://127.0.0.1:5000");
     function enter_room(rid) {
         socket.emit('enter room', {'rid': rid})
@@ -78,7 +49,7 @@
     }
 
     function set_partner(partner) {
-        socket.emit('set partner',partner)
+        socket.emit('set partner', partner)
     }
 
     $(document).ready(function() {
@@ -98,10 +69,8 @@
                 document.getElementById("myDiv").innerHTML += "<p class='msg-title'><span class='user-name'>" + msg.name + "</span> at " + msg.time + "</p><p>" + msg.data + "</p>";
                 document.getElementById('scname').value = ''
             } else {
-                //document.getElementById("myDiv").innerHTML += '<p style="color:red;"><br> (privately to ' + msg.to + ')</p>';
                 document.getElementById("myDiv").innerHTML += "<p class='msg-title'><span class='user-name'>" + msg.name + "</span> at " + msg.time + "<span class='private-text'> (privately to " + msg.to +")</p><p>" + msg.data + "</p>";
                 document.getElementById('scname').value = ''
-            // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
             }
         });
 
@@ -111,7 +80,6 @@
         })
 
         $('#emit').submit(function(event) {
-            //console.log(document.getElementById("scname").value);
             socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
             return false;
         });
@@ -180,8 +148,9 @@
             document.getElementById('room').style.display = 'none'
         })
 
+
         socket.on('user change', function(msg) {
-          //create list of buttons of users currently online
+          //create list of buttons of users currently online to select private messaging
           document.getElementById("users").innerHTML = "<h3>Send message to:</h3>";
           var length = msg.connected_users.length;
           document.getElementById('users').innerHTML += '<ul>'
@@ -193,6 +162,7 @@
         });
 
         socket.on('set partner success', function(msg){
+          //send confirmation message to chat
           if(msg == "all"){
             document.getElementById("myDiv").innerHTML += "<p> [notice] Now sending to everyone.</p><br>";
           }
@@ -374,33 +344,31 @@
 <h1 class="text"><b>CN</b> Chat App</h1>
 <input type="button" id="daymode" value="day mode">
 <input type="button" id="nightmode" value="night mode">
+
 <hr>
 
-
 <div id=whole_system>
-<div id="hello" class="text"></div>
 
+<div id="hello" class="text"></div>
 <form action='/' method="GET">
 <input id="logout" type="submit" value="log out">
 </form>
 
 <div id="myDiv" class="text"></div>
-
-<div id="container" class="text">
-<div id='users' class="text">
-<h3>Send message to:</h3>
-</div>
-
-<div id='chatting_room' class="text">
-<h3>Current Chatting Rooms:</h3>
-</div>
-</div>
-
 <div class="chat-input">
 <form id="emit" action="#" method="POST">
     <input type="text" size="60" name="scname" id="scname"></input>
     <input type="submit" value="submit">
 </form>
+</div>
+
+<div id="container" class="text">
+<div id='users' class="text">
+<h3>Send message to:</h3>
+</div>
+<div id='chatting_room' class="text">
+<h3>Current Chatting Rooms:</h3>
+</div>
 </div>
 
 <h2 class="text">Create a new chatting room:</h2>
