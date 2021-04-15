@@ -6,7 +6,6 @@ how to open and play with our chatting system:
 3. on cmd, type 'make venv' to create a virtual enviornment under this category.
 
 4. for Mac, type 'source venv/bin/activate' to activate the virtual enviornment you just built
-for Windows, type 'venv/bin/activate' to activate the virtual enviornment you just built
 
 5. After entering the virtual enviornment, type 'make run' to run the application
 
