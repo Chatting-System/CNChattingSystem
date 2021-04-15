@@ -1,0 +1,4 @@
+how to open our chatting system:
+1. After you get the zip, please unzip it 
+2. using cmd to find the path of the file and open it
+3. 
