@@ -1,4 +1,19 @@
-how to open our chatting system:
+how to open and play with our chatting system:
 1. After you get the zip, please unzip it 
-2. using cmd to find the path of the file and open it
-3. 
+
+2. using cmd to find the path of the file and open the category
+
+3. on cmd, type 'make venv' to create a virtual enviornment under this category.
+
+4. for Mac, type 'source venv/bin/activate' to activate the virtual enviornment you just built
+for Windows, type 'venv/bin/activate' to activate the virtual enviornment you just built
+
+5. After entering the virtual enviornment, type 'make run' to run the application
+
+6. then you can go to the browser and enter the url '127.0.0.1:5000' to start to play with the application!
+
+7. When you finish with playing with the application, you can type 'ctrl-c' in the cmd to stop the server
+
+8. Then type 'deactivate' to deactivate the virtual enviornment
+
+9. then type 'make clean' to remove the file of the virtual enviornment
