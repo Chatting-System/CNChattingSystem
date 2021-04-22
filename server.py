@@ -20,6 +20,7 @@ id_to_creator = {}
 room_stored = {} #This dic contains room_id, room_name, description and password. This should not be sent back to the client
 members_information = {}
 number = 0 #This number acts as the id of room so it should be incremented
+mode = "day mode"
 
 @socketio.on('connect')
 def test_connect():
@@ -71,46 +72,56 @@ def connection_success(message):
 
 @app.route('/', methods=['GET', 'POST'])
 def start():
+    global mode
     if request.method == 'GET':
         print("NEW CONNECTION")
-        return render_template("login.html")
+        return render_template("login.html", mode=mode)
     else:
         username = request.form['username']
         password = request.form['password']
 
         recordedpassword = userinformation.get(username, 'NULL')
         if recordedpassword == 'NULL':
-            return render_template('login.html', error='Unknown username!')
+            return render_template('login.html', error='Unknown username!', mode=mode)
         elif recordedpassword != password:
-            return render_template('login.html', error='Wrong password!')
+            return render_template('login.html', error='Wrong password!', mode=mode)
         elif username in client_to_sock.keys():
-            return render_template('login.html', error="This account has already logged in!")
+            return render_template('login.html', error="This account has already logged in!", mode=mode)
         else:
             session['username'] = username
-            return render_template('test.html')
+            return render_template('test.html', mode=mode)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def toregister():
+    global mode
     if request.method == 'GET':
-        return render_template("register.html")
+        return render_template("register.html", mode=mode)
     else:
         username = request.form['username']
         password = request.form['password']
         confirm = request.form['confirm']
+        
         check = re.search(r"\W", username)
         if check != None:
-            return render_template('register.html', error='Invalid Username!')
+            return render_template('register.html', error='Invalid Username!', mode=mode)
 
         find_existing_username = userinformation.get(username, 'NULL')
         if find_existing_username != 'NULL':
-            return render_template('register.html', error='The username already exists!')
+            return render_template('register.html', error='The username already exists!', mode=mode)
         elif confirm != password:
-            return render_template('register.html', error='The passwords do not match!')
+            return render_template('register.html', error='The passwords do not match!', mode=mode)
         else:
             userinformation[username] = password
             return redirect('/')
-            #return render_template('register.html', success='Success!')
+            #return render_template('register.html', success='Success!', mode=mode)
+
+@app.route('/ajax', methods=["GET", "POST"])
+def ajax():
+    global mode
+    _mode = request.args.get('mode')
+    mode = _mode
+    return mode
 
 @socketio.on("create room")
 def create_room(msg):

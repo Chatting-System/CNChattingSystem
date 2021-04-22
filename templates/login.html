@@ -31,6 +31,26 @@
 <script type="text/javascript" charset="utf-8">
 
   $(document).ready(function() {
+      var mode = document.getElementById('mode').value
+      if (mode == 'day mode') {
+          var bg_color = "#ffffff"
+          var bg_light = "#defaf9"
+          var text_color = "#000000"
+          var line_color = "#0b3f4d"
+          $("body").css("background-color", bg_color);
+          $(".text").css("color", text_color);
+          $("hr").css("border-color",line_color);
+      }
+      if (mode == 'night mode') {
+          var bg_color = "#0b3f4d"
+          var bg_light = "#255c6b"
+          var text_color = "#cee7ed"
+          var line_color = "#2a8eeb"
+          $("body").css("background-color", bg_color);
+          $(".text").css("color", text_color);
+          $("hr").css("border-color",line_color);
+      }
+
       $('#nightmode').click(function (){
           var bg_color = "#0b3f4d"
           var bg_light = "#255c6b"
@@ -39,6 +59,9 @@
           $("body").css("background-color", bg_color);
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
+          
+          mode = "night mode"
+          loadXMLDoc(mode)
       })
 
       $('#daymode').click(function (){
@@ -49,9 +72,32 @@
           $("body").css("background-color", bg_color);
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
+
+          mode = "day mode"
+          loadXMLDoc(mode)
       })
 
     })
+
+    function loadXMLDoc(mode) {
+        console.log(mode)
+        var xmlhttp;
+        if (window.XMLHttpRequest) {
+                xmlhttp = new XMLHttpRequest();
+        }
+        else {
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.open("GET", "/ajax?mode=" + mode, true);
+        xmlhttp.send();
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.status == 200 && xmlhttp.readyState == 4){
+                var mode = xmlhttp.responseText;
+                document.getElementById('mode').value = mode;
+            }
+        }
+
+    }
 </script>
 
 
@@ -106,6 +152,7 @@
   <h1 class="text"><b>CN</b> Chat App</h1>
   <input type="button" id="daymode" value="day mode">
   <input type="button" id="nightmode" value="night mode">
+  <input type="hidden" id="mode" name="mode" value="{{ mode }}">
   <hr>
 
 
