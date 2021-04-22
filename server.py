@@ -109,7 +109,8 @@ def toregister():
             return render_template('register.html', error='The passwords do not match!')
         else:
             userinformation[username] = password
-            return render_template('register.html', success='Success!')
+            return redirect('/')
+            #return render_template('register.html', success='Success!')
 
 @socketio.on("create room")
 def create_room(msg):
