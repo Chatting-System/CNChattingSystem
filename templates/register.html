@@ -33,8 +33,8 @@
 <script type="text/javascript" charset="utf-8">
 
   $(document).ready(function() {
-    var mode = document.getElementById('mode').value
-      if (mode == 'day mode') {
+    var mode = document.getElementById('mode0').value
+      if (mode == 'daymode') {
           var bg_color = "#ffffff"
           var bg_light = "#defaf9"
           var text_color = "#000000"
@@ -42,8 +42,9 @@
           $("body").css("background-color", bg_color);
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
+          document.getElementById("mode0").value = mode
       }
-      if (mode == 'night mode') {
+      if (mode == 'nightmode') {
           var bg_color = "#0b3f4d"
           var bg_light = "#255c6b"
           var text_color = "#cee7ed"
@@ -51,6 +52,7 @@
           $("body").css("background-color", bg_color);
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
+          document.getElementById("mode0").value = mode
       }
 
       $('#nightmode').click(function (){
@@ -62,8 +64,10 @@
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
 
-          mode = "night mode"
-          loadXMLDoc(mode)
+          mode = "nightmode"
+          document.getElementById("mode0").value = mode
+          $("#back").attr("action", "/nightmode")
+          $("#register").attr("action", "/register/nightmode")
       })
 
       $('#daymode').click(function (){
@@ -75,27 +79,11 @@
           $(".text").css("color", text_color);
           $("hr").css("border-color",line_color);
 
-          mode = "day mode"
-          loadXMLDoc(mode)
+          mode = "daymode"
+          document.getElementById("mode0").value = mode
+          $("#back").attr("action", "/daymode")
+          $("#register").attr("action", "/register/daymode")
       })
-
-      function loadXMLDoc(mode) {
-        var xmlhttp;
-        if (window.XMLHttpRequest) {
-                xmlhttp = new XMLHttpRequest();
-        }
-        else {
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.open("GET", "/ajax?mode=" + mode, true);
-        xmlhttp.send();
-        xmlhttp.onreadystatechange = function () {
-            if (xmlhttp.status == 200 && xmlhttp.readyState == 4){
-                var response = 'success'
-            }
-        }
-
-    }
     })
 </script>
 
@@ -165,12 +153,12 @@
   <h1 class="text"><b>CN</b> Chat App</h1>
   <input type="button" id="daymode" value="day mode">
   <input type="button" id="nightmode" value="night mode">
-  <input type="hidden" id="mode" name="mode" value="{{ mode }}">
+  <input type="hidden" id="mode0" name="mode0" value="{{ mode }}">
   <hr>
 
   <div id="register-form">
     <h1 class="text">Please register here!</h1>
-    <form id='register' action='/register' method='POST' class="text">
+    <form id='register' action='/register/{{ mode }}' method='POST' class="text">
         Your username:<input type="text" name="username" id="username" required class="input-field"><br>
         Your password:<input type="password" name="password" id="password" required class="input-field"><br>
         Confirm password:<input type="password" name="confirm" id="confirm" required class="input-field"><br>
@@ -187,7 +175,7 @@
             <h2>{{success}}</h2>
         {% endif %}
     </div>
-    <form id='back' action='/' method='GET'>
+    <form id='back' action='/{{ mode }}' method='GET'>
         <input type="submit" value="back to login">
     </form>
 </body>

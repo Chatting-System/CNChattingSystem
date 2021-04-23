@@ -20,7 +20,6 @@ id_to_creator = {}
 room_stored = {} #This dic contains room_id, room_name, description and password. This should not be sent back to the client
 members_information = {}
 number = 0 #This number acts as the id of room so it should be incremented
-mode = "day mode"
 
 @socketio.on('connect')
 def test_connect():
@@ -70,9 +69,12 @@ def connection_success(message):
     emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
     emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
 
-@app.route('/', methods=['GET', 'POST'])
-def start():
-    global mode
+@app.route("/", methods=['GET', 'POST'])
+def intial():
+    return redirect('/daymode')
+
+@app.route('/<mode>', methods=['GET', 'POST'])
+def start(mode):
     if request.method == 'GET':
         print("NEW CONNECTION")
         return render_template("login.html", mode=mode)
@@ -92,9 +94,8 @@ def start():
             return render_template('test.html', mode=mode)
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def toregister():
-    global mode
+@app.route('/register/<mode>', methods=['GET', 'POST'])
+def toregister(mode):
     if request.method == 'GET':
         return render_template("register.html", mode=mode)
     else:
@@ -113,15 +114,8 @@ def toregister():
             return render_template('register.html', error='The passwords do not match!', mode=mode)
         else:
             userinformation[username] = password
-            return redirect('/')
+            return redirect('/' + mode)
             #return render_template('register.html', success='Success!', mode=mode)
-
-@app.route('/ajax', methods=["GET", "POST"])
-def ajax():
-    global mode
-    _mode = request.args.get('mode')
-    mode = _mode
-    return mode
 
 @socketio.on("create room")
 def create_room(msg):
