@@ -70,50 +70,56 @@ def connection_success(message):
     emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
     emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
 
-@app.route('/', methods=['GET', 'POST'])
-def start():
+@app.route("/", methods=['GET', 'POST'])
+def intial():
+    return redirect('/daymode')
+
+@app.route('/<mode>', methods=['GET', 'POST'])
+def start(mode):
     if request.method == 'GET':
         print("NEW CONNECTION")
-        return render_template("login.html")
+        return render_template("login.html", mode=mode)
     else:
         username = request.form['username']
         password = request.form['password']
 
         recordedpassword = userinformation.get(username, 'NULL')
         if recordedpassword == 'NULL':
-            return render_template('login.html', error='Unknown username!')
+            return render_template('login.html', error='Unknown username!', mode=mode)
         elif recordedpassword != password:
-            return render_template('login.html', error='Wrong password!')
+            return render_template('login.html', error='Wrong password!', mode=mode)
         elif username in client_to_sock.keys():
-            return render_template('login.html', error="This account has already logged in!")
+            return render_template('login.html', error="This account has already logged in!", mode=mode)
         else:
             session['username'] = username
-            return render_template('test.html')
+            return render_template('test.html', mode=mode)
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def toregister():
+@app.route('/register/<mode>', methods=['GET', 'POST'])
+def toregister(mode):
     if request.method == 'GET':
-        return render_template("register.html")
+        return render_template("register.html", mode=mode)
     else:
         username = request.form['username']
         password = request.form['password']
         confirm = request.form['confirm']
+
         check = re.search(r"\W", username)
         if check != None:
-            return render_template('register.html', error='Invalid Username!')
+            return render_template('register.html', error='Invalid Username!', mode=mode)
 
         find_existing_username = userinformation.get(username, 'NULL')
         if find_existing_username != 'NULL':
-            return render_template('register.html', error='The username already exists!')
+            return render_template('register.html', error='The username already exists!', mode=mode)
         elif confirm != password:
-            return render_template('register.html', error='The passwords do not match!')
+            return render_template('register.html', error='The passwords do not match!', mode=mode)
         else:
             userinformation[username] = password
             chat_block[username] = []
             print(chat_block.keys())
-            return redirect('/')
             #return render_template('register.html', success='Success!')
+            return redirect('/' + mode)
+            #return render_template('register.html', success='Success!', mode=mode)
 
 @socketio.on('my event')
 def my_event(message):
@@ -248,6 +254,6 @@ def room_emit(msg):
     time = msg.get('time')
 
     emit('room response', {'data': data, 'time': time, "name": session.get('username')}, room=name)
-    
+
 if __name__ == "__main__":
     socketio.run(app, debug=True)

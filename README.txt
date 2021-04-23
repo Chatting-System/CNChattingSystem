@@ -30,9 +30,18 @@ File lists:
 |---HOWTO.txt
 |---makefile
 |---.idea
+|   |---inspectionProfiles
+|   |   |---Project_Default.xml
+|   |   |---profiles_settings.xml
+|   |---.gitignore
+|   |---aws.xml
+|   |---computerNetworking.iml
+|   |---misc.xml
+|   |---modules.xml
+|   |---vcs.xml
 |---templates
 |   |---login.html
 |   |---register.html
-|   |---index.html
+|   |---test.html
 |---.gitignore
 |---server.py

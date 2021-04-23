@@ -199,6 +199,37 @@
         })
 
 
+
+        var mode = document.getElementById('mode').value
+        if (mode == 'daymode') {
+            var bg_color = "#ffffff"
+            var bg_light = "#defaf9"
+            var text_color = "#000000"
+            var line_color = "#0b3f4d"
+            $("body").css("background-color", bg_color);
+            $(".text").css("color", text_color);
+            $(".chat-input").css("color", text_color);
+            $(".chat-input").css("background-color", bg_light);
+            $("#myDiv").css("background-color",bg_light);
+            $("#room_box").css("background-color",bg_light);
+            $("#container").css("background-color",bg_light);
+            $("hr").css("border-color",line_color);
+        }
+        if (mode == 'nightmode') {
+            var bg_color = "#0b3f4d"
+            var bg_light = "#255c6b"
+            var text_color = "#cee7ed"
+            var line_color = "#2a8eeb"
+            $("body").css("background-color", bg_color);
+            $(".text").css("color", text_color);
+            $(".chat-input").css("color", text_color);
+            $(".chat-input").css("background-color", bg_light);
+            $("#myDiv").css("background-color",bg_light);
+            $("#room_box").css("background-color",bg_light);
+            $("#container").css("background-color",bg_light);
+            $("hr").css("border-color",line_color);
+      }
+
         $('#nightmode').click(function (){
             var bg_color = "#0b3f4d"
             var bg_light = "#255c6b"
@@ -212,6 +243,10 @@
             $("#room_box").css("background-color",bg_light);
             $("#container").css("background-color",bg_light);
             $("hr").css("border-color",line_color);
+
+            mode = "nightmode"
+            document.getElementById("mode").value = mode
+            $("#_logout").attr("action", "/nightmode")
         })
 
         $('#daymode').click(function (){
@@ -228,6 +263,9 @@
             $("#container").css("background-color",bg_light);
             $("hr").css("border-color",line_color);
 
+            mode = "daymode"
+            document.getElementById("mode").value = mode
+            $("#_logout").attr("action", "/daymode")
         })
 
     });
@@ -392,20 +430,21 @@
 <h1 class="text"><b>CN</b> Chat App</h1>
 <input type="button" id="daymode" value="day mode">
 <input type="button" id="nightmode" value="night mode">
+<input type="hidden" id="mode" name="mode" value="{{ mode }}">
 
 <hr>
 
 <div id=whole_system>
 
 <div id="hello" class="text"></div>
-<form action='/' method="GET">
+<form id='_logout' action='/{{ mode }}' method="GET">
 <input id="logout" type="submit" value="log out">
 </form>
 
 <div id="myDiv" class="text"></div>
 <div class="chat-input">
 <form id="emit" action="#" method="POST">
-    <input type="text" size="60" name="scname" id="scname"></input>
+    <input type="text" size="60" name="scname" id="scname" required></input>
     <input type="submit" value="submit">
 </form>
 </div>
