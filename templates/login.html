@@ -4,29 +4,6 @@
 <title>log in</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
-<!-- <script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-        var socket = io();
-
-        $('form#login').submit(function(event) {
-            //console.log(document.getElementById("scname").value);
-            socket.emit('log in', {'username': document.getElementById("username").value,
-            'password': document.getElementById("password").value});
-            return false;
-        });
-
-        socket.on('error', function(msg) {
-            document.getElementById("error").innerHTML = "<h2>"+msg+"</h2>";
-        });
-
-        socket.on('login success', function() {
-            var destination = '/templates/test.html'
-            socket.emit('redirect', destination)
-        });
-
-
-    })
-</script> -->
 
 <script type="text/javascript" charset="utf-8">
 
@@ -115,6 +92,10 @@
     }
 
     #login {
+    }
+
+    #username, #password {
+        border-style: inset;
     }
 
     #register {
