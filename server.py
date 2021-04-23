@@ -12,6 +12,7 @@ userinformation = {}
 client_to_sock = {}
 sock_to_client = {}
 chat_private = {}
+chat_block = {}
 #room database
 id_to_name = {} 
 id_to_description = {}
@@ -29,7 +30,7 @@ def test_connect():
 @socketio.on('disconnect')
 def test_disconnect():
     user = session.pop('username')
-    print("CONNECTION UNESTBLISHED")
+    print("CONNECTION UNESTABLISHED")
     sid = client_to_sock.pop(user)
     sock_to_client.pop(sid)
     rid = ''
@@ -109,8 +110,60 @@ def toregister():
             return render_template('register.html', error='The passwords do not match!')
         else:
             userinformation[username] = password
+            chat_block[username] = []
+            print(chat_block.keys())
             return redirect('/')
             #return render_template('register.html', success='Success!')
+
+@socketio.on('my event')
+def my_event(message):
+    try:
+        if chat_private[session.get('username')] in chat_block[session.get('username')]:
+            print("entered if statement")
+            emit('message blocked', chat_private[session.get('username')])
+        else:
+            emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                                 "private": 1, "to": "you"},
+                 room=client_to_sock[chat_private[session.get('username')]])
+            emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                                 "private": 1, "to": chat_private[session.get('username')]},
+                 room=request.sid)
+    except KeyError:
+        for user in sock_to_client.keys():
+            if sock_to_client[user] in chat_block[session.get('username')]:
+                continue
+            emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
+                                 "private": 0},
+                 room=user)
+
+@socketio.on('set partner')
+def set_partner(msg):
+    print("set partner request received")
+    if msg == "all":
+        try:
+            del chat_private[session.get('username')]
+            print("sending to everyone")
+            emit('set partner success', msg)
+        except KeyError:
+            print("still sending to everyone")
+    elif msg != session.get('username'):
+        print(f"setting {msg} as partner")
+        chat_private[session.get('username')] = msg
+        emit('set partner success', msg)
+
+@socketio.on('block')
+def block(user):
+    if user != session.get('username'):
+        chat_block[user].append(session.get('username'))
+        emit('block success', user)
+
+@socketio.on('unblock')
+def unblock(user):
+    chat_block[user].remove(session.get('username'))
+    print(chat_block[user])
+    emit('unblock success', user)
+
+#########CHAT ROOMS##########
 
 @socketio.on("create room")
 def create_room(msg):
@@ -187,32 +240,6 @@ def exit_room(msg):
         emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
 
 
-
-
-
-# @app.route('/create', methods=["POST"])
-# def create_room():
-#     room_name = request.form.get('room_name')
-#     room_description = request.form.get('description')
-#     room_password = request.form.get('room_password', '')
-#     room_id = str(uuid.uuid1().int)
-#     id_to_name[room_id] = room_name
-#     id_to_description[room_id] = room_description
-#     room_stored[room_id] = [room_name, room_description, room_password]
-#     # print(room_name)
-#     # print(room_description)
-#     # print(room_password)
-#     # print(room_password == '')
-#     socketio.emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values())}, broadcast=True)
-#     return redirect('/chatroom/{}'.format(room_id))
-
-# @app.route('/chatroom/<room_id>', methods=["POST", "GET"])
-# def room_in(room_id):
-#     username = session['username']
-#     room_name = room_stored[room_id][0]
-#     join_room(room_name)
-#     return render_template("room.html", room_name = room_name, username=username)
-
 @socketio.on('room chatting')
 def room_emit(msg):
     data = msg.get('msg')
@@ -221,42 +248,6 @@ def room_emit(msg):
     time = msg.get('time')
 
     emit('room response', {'data': data, 'time': time, "name": session.get('username')}, room=name)
-
-@socketio.on('my event')
-def my_event(message):
-    try:
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
-                             "private": 1, "to": "you"},
-             room=client_to_sock[chat_private[session.get('username')]])
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
-                             "private": 1, "to": chat_private[session.get('username')]},
-             room=request.sid)
-    except KeyError:
-        emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
-                             "private": 0}, broadcast=True)
-
-@socketio.on('set partner')
-def set_partner(msg):
-    print("set partner request received")
-    if msg == "all":
-        try:
-            del chat_private[session.get('username')]
-            print("sending to everyone")
-            emit('set partner success', msg)
-        except KeyError:
-            print("still sending to everyone")
-    elif msg != session.get('username'):
-        print(f"setting {msg} as partner")
-        chat_private[session.get('username')] = msg
-        emit('set partner success', msg)
-
-
-# @app.route('/ajax', methods = ['POST'])
-# def ajax_request():
-#     username = request.form['username']
-#     time = request.form['time']
-#     return jsonify(username=username, time=time)
-    
     
 if __name__ == "__main__":
     socketio.run(app, debug=True)
