@@ -284,5 +284,6 @@ def room_emit(msg):
 
     emit('room response', {'data': data, 'time': time, "name": session.get('username')}, room=name)
 
+
 if __name__ == "__main__":
     socketio.run(app, debug=True)
