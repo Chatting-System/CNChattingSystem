@@ -1,18 +1,19 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from flask_socketio import SocketIO, emit, send
+from flask import Flask, render_template, request, session, redirect
+from flask_socketio import SocketIO, emit
 from flask_socketio import join_room, leave_room, close_room
-import uuid
 import re
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
+
 userinformation = {}
 client_to_sock = {}
 sock_to_client = {}
 chat_private = {}
-chat_block = {}
+blocked_by = {} #keys: users, values: list of users that have blocked this user
+blocked = {} #keys: users, values: list of users that this user has blocked
 #room database
 id_to_name = {} 
 id_to_description = {}
@@ -57,7 +58,9 @@ def test_disconnect():
             room_stored.pop(rid)
             members_information.pop(rid)
             emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
-    emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
+    for user in client_to_sock.keys():
+        emit('user change', {'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())},
+             room=client_to_sock[user])
 
 @socketio.on('connection')
 def connection_success(message):
@@ -67,8 +70,10 @@ def connection_success(message):
     sock_to_client[request.sid] = msg
     emit('connection success', msg)
     print(list(client_to_sock.keys()))
-    emit("user change", {'connected_users': list(client_to_sock.keys())}, broadcast=True)
+    #emit('user change', {'connected_users': list(client_to_sock.keys())}, broadcast=True)
     emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
+    for user in client_to_sock.keys():
+        emit('user change', {'user': user, 'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())}, room=client_to_sock[user])
 
 @app.route("/", methods=['GET', 'POST'])
 def intial():
@@ -115,17 +120,15 @@ def toregister(mode):
             return render_template('register.html', error='The passwords do not match!', mode=mode)
         else:
             userinformation[username] = password
-            chat_block[username] = []
-            print(chat_block.keys())
-            #return render_template('register.html', success='Success!')
+            blocked_by[username] = []
+            blocked[username] = []
             return redirect('/' + mode)
             #return render_template('register.html', success='Success!', mode=mode)
 
 @socketio.on('my event')
 def my_event(message):
     try:
-        if chat_private[session.get('username')] in chat_block[session.get('username')]:
-            print("entered if statement")
+        if chat_private[session.get('username')] in blocked_by[session.get('username')]:
             emit('message blocked', chat_private[session.get('username')])
         else:
             emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
@@ -136,7 +139,7 @@ def my_event(message):
                  room=request.sid)
     except KeyError:
         for user in sock_to_client.keys():
-            if sock_to_client[user] in chat_block[session.get('username')]:
+            if sock_to_client[user] in blocked_by[session.get('username')]:
                 continue
             emit('my response', {'data': message['data'], 'time': message['time'], "name": session.get('username'),
                                  "private": 0},
@@ -160,16 +163,18 @@ def set_partner(msg):
 @socketio.on('block')
 def block(user):
     if user != session.get('username'):
-        chat_block[user].append(session.get('username'))
+        blocked_by[user].append(session.get('username'))
+        blocked[session.get('username')].append(user)
         emit('block success', user)
 
 @socketio.on('unblock')
 def unblock(user):
-    chat_block[user].remove(session.get('username'))
-    print(chat_block[user])
+    blocked_by[user].remove(session.get('username'))
+    blocked[session.get('username')].remove(user)
+    print(blocked_by[user])
     emit('unblock success', user)
 
-#########CHAT ROOMS##########
+######### CHAT ROOMS ##########
 
 @socketio.on("create room")
 def create_room(msg):

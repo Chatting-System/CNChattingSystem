@@ -72,6 +72,13 @@
             document.getElementById('welcome').innerHTML = "<h2>Welcome " + msg + "!</h2>";
         })
 
+        // MESSAGE SENDING //
+
+        $('#emit').submit(function(event) {
+            socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
+            return false;
+        });
+
         socket.on('my response', function(msg) {
             if (msg.private==0) {
                 document.getElementById('myDiv').innerHTML += "<p class='msg-title'><span class='user-name'>" + msg.name + "</span> at " + msg.time + "</p><p>" + msg.data + "</p>";
@@ -82,25 +89,30 @@
             }
         });
 
+        // USER LIST, PRIVATE MESSAGING AND BLOCKING //
+
         socket.on('user change', function(msg) {
-          //create list of buttons of users currently online to select for private messaging
-          document.getElementById('users').innerHTML = "<h3>Send message to:</h3>";
-          document.getElementById('block-users').innerHTML = "<li></li>"
+          //create list of buttons of users currently online to select for private messaging/blocking
           var length = msg.connected_users.length;
+          document.getElementById('users').innerHTML = "<h3>Send message to:</h3>";
+          document.getElementById('block-users').innerHTML = '<ul>'
           document.getElementById('users').innerHTML += '<ul>'
-          //document.getElementById('block-users').innerHTML += '<ul>'
           document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('all')>Everyone</button>"
           for (var i=0; i<length; i++) {
-            var id = "block-" + msg.connected_users[i]
+            if (msg.connected_users[i] == msg.user) {continue;}
             document.getElementById('users').innerHTML += "<li> <button onclick=set_partner('"+msg.connected_users[i]+"')>"+ msg.connected_users[i] + "</button>"
-            document.getElementById('block-users').innerHTML += "<li id='"+id+"'> <button onclick=block('"+msg.connected_users[i]+"')>block</button></li>"
+            var id = "block-" + msg.connected_users[i]
+            if (msg.blocked_users.includes(msg.connected_users[i])) {
+              document.getElementById('block-users').innerHTML += "<li id='"+id+"'> <button onclick=unblock('"+msg.connected_users[i]+"')>unblock</button></li>"
+            } else {
+              document.getElementById('block-users').innerHTML += "<li id='"+id+"'> <button onclick=block('"+msg.connected_users[i]+"')>block</button></li>"
             }
+          }
           document.getElementById('users').innerHTML += '</ul>';
           document.getElementById('block-users').innerHTML += '</ul>';
         });
 
         socket.on('set partner success', function(msg){
-          //send confirmation message to chat
           if(msg == "all"){
             document.getElementById('myDiv').innerHTML += "<p class='msg-title'> [notice] Now sending to everyone.</p>";
           }
@@ -124,15 +136,13 @@
             document.getElementById('scname').value = ''
         })
 
-        $('#emit').submit(function(event) {
-            socket.emit('my event', {'data': document.getElementById("scname").value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
-            return false;
-        });
+
+        //CHATROOM FUNCTIONS//
 
         $('#room_emit').submit(function(event) {
             socket.emit('room chatting', {'msg': document.getElementById("room_text").value, 'room': document.getElementById('rid').value, 'time': new Date().format("yyyy-MM-dd hh:mm:ss")});
             return false;
-        })
+        });
 
         $('#create').submit(function(event) {
             room_name = document.getElementById('room_name').value;
@@ -140,7 +150,7 @@
             room_password = document.getElementById("room_password").value;
             socket.emit('create room', {'name': room_name, 'description': room_description, "password": room_password})
             return false;
-        })
+        });
 
         socket.on('new room', function(msg) {
             document.getElementById('chatting_room').innerHTML = "<h3>Current Chatting Rooms:</h3>";
@@ -198,7 +208,7 @@
             document.getElementById('room_text').value = ''
         })
 
-
+        // COLOR MODE //
 
         var mode = document.getElementById('mode').value
         if (mode == 'daymode') {
@@ -359,7 +369,7 @@
         width: 300px;
         height: 300px;
         left: 200px;
-        top: 82px;
+        top: 68px;
         overflow-x: auto;
         list-style-type: none;
     }
@@ -423,7 +433,6 @@
     }
 
 </style>
-
 </head>
 
 <body>
