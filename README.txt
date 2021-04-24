@@ -19,6 +19,7 @@ logout
 view and send messages to the public
 view and send messages to the other person (1 to 1 conversation)
 view the list of online users
+block or unblock the users so that you will not receive their messgaes in public. 
 view the list of online chatting rooms and their basic information
 create a chatting room
 join in a chatting room
