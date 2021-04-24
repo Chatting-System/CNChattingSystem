@@ -91,7 +91,10 @@
         left:680px;
     }
 
-    #login {
+    #login-button {
+      position: relative;
+      left: 210px;
+      top: 10px;
     }
 
     #username, #password {
@@ -102,14 +105,14 @@
         position:absolute;
         width:300px;
         left: 330px;
-        top: 200px;
+        top: 210px;
     }
 
     #error {
         position:absolute;
         width: 500px;
         left:0px;
-        top:-80px;
+        top:-70px;
     }
 
 </style>
@@ -128,7 +131,7 @@
     <form id='_login' action='/{{ mode }}' method='POST' class="text">
         Your username:<input type="text" name="username" id="username" required><br>
         Your password:<input type="password" name="password" id="password" required><br>
-        <input type="submit" value="login">
+        <input id="login-button" type="submit" value="login">
     </form>
   </div>
 
