@@ -89,6 +89,7 @@
             }
         });
 
+
         // USER LIST, PRIVATE MESSAGING AND BLOCKING //
 
         socket.on('user change', function(msg) {
@@ -112,6 +113,7 @@
           document.getElementById('block-users').innerHTML += '</ul>';
         });
 
+
         socket.on('set partner success', function(msg){
           if(msg == "all"){
             document.getElementById('myDiv').innerHTML += "<p class='msg-title'> [notice] Now sending to everyone.</p>";
@@ -120,6 +122,7 @@
             document.getElementById('myDiv').innerHTML += "<p class='msg-title'> [notice] Now sending privately to " + msg + ".</p>";
           }
         })
+
 
         socket.on('block success', function(msg){
             document.getElementById('myDiv').innerHTML += "<p class='msg-title'> [notice] Successfully blocked " + msg + ".</p>";
@@ -166,11 +169,13 @@
             document.getElementById('chatting_room').innerHTML += '</ul>';
         });
 
+
         socket.on('auth', function(msg) {
             document.getElementById('authrid').value = msg.rid
             document.getElementById('whole_system').style.display = 'none'
             document.getElementById('auth').style.display = 'inline'
         })
+
 
         socket.on('join success', function(msg) {
             room = msg.room
@@ -193,9 +198,11 @@
             document.getElementById('auth').style.display = 'none'
         });
 
+
         socket.on('auth fail', function() {
             document.getElementById('errormsg').innerHTML = '<p>Inaccurate Password</p>'
         })
+
 
         socket.on('exit success', function() {
             document.getElementById('room_box').innerHTML = ''
@@ -203,10 +210,12 @@
             document.getElementById('room').style.display = 'none'
         })
 
+
         socket.on('room response', function(msg) {
             document.getElementById('room_box').innerHTML += "<p class='msg-title'>" + msg.name + " at " + msg.time + "</p>"+"<p>" + msg.data + "</p><br>";
             document.getElementById('room_text').value = ''
         })
+
 
         // COLOR MODE //
 
