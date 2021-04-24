@@ -59,7 +59,8 @@ def test_disconnect():
             members_information.pop(rid)
             emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
     for user in client_to_sock.keys():
-        emit('user change', {'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())},
+        emit('user change',
+             {'user': user, 'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())},
              room=client_to_sock[user])
 
 @socketio.on('connection')
@@ -73,7 +74,9 @@ def connection_success(message):
     #emit('user change', {'connected_users': list(client_to_sock.keys())}, broadcast=True)
     emit('new room', {'existing_rooms_ids': list(id_to_name.keys()), 'existing_rooms_names': list(id_to_name.values()), 'existing_rooms_descriptions': list(id_to_description.values()), 'type': list(id_to_type.values()), 'creator': list(id_to_creator.values())}, broadcast=True)
     for user in client_to_sock.keys():
-        emit('user change', {'user': user, 'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())}, room=client_to_sock[user])
+        emit('user change',
+             {'user': user, 'blocked_users': blocked[user], 'connected_users': list(client_to_sock.keys())},
+             room=client_to_sock[user])
 
 @app.route("/", methods=['GET', 'POST'])
 def intial():
@@ -171,7 +174,6 @@ def block(user):
 def unblock(user):
     blocked_by[user].remove(session.get('username'))
     blocked[session.get('username')].remove(user)
-    print(blocked_by[user])
     emit('unblock success', user)
 
 ######### CHAT ROOMS ##########
